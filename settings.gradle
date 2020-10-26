@@ -1,0 +1,3 @@
+include ':InkRedux'
+include ':app'
+rootProject.name = "InkReduxLibraryApplication"
