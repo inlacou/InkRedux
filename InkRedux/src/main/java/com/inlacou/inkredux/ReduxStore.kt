@@ -9,8 +9,9 @@ interface ReduxStore <State: ReduxState, Action: ReduxAction> {
   fun applyMiddleware(state: State, action: Action, dispatchAction: DispatchAction<Action>)
   fun getActionHistory(): List<Pair<Long, Action>>
   fun getExhaustiveActionHistory(): List<Triple<Long, Action, Boolean>>
-  fun getObservable(): Observable<State>
   fun getSubject(): PublishSubject<State>
+  fun getActionHistorySubject(): PublishSubject<List<Pair<Long, Action>>>
+  fun getExhaustiveActionHistorySubject(): PublishSubject<List<Triple<Long, Action, Boolean>>>
   fun addSubscriber(subscriber: ReduxStoreSubscriber<State>): Boolean
   fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>): Boolean
   val currentState: State

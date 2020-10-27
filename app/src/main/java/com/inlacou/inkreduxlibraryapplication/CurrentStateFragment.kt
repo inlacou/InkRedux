@@ -11,19 +11,16 @@ import androidx.navigation.fragment.findNavController
 import io.reactivex.rxjava3.disposables.Disposable
 
 /**
- * A simple [Fragment] subclass as the second destination in the navigation.
+ * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class SecondFragment : Fragment() {
+class CurrentStateFragment : Fragment() {
 	
 	private val disposables = mutableListOf<Disposable?>()
 	private var tv: TextView? = null
 	
-	override fun onCreateView(
-			inflater: LayoutInflater, container: ViewGroup?,
-			savedInstanceState: Bundle?
-	): View? {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		// Inflate the layout for this fragment
-		return inflater.inflate(R.layout.fragment_second, container, false)
+		return inflater.inflate(R.layout.fragment_first, container, false)
 	}
 	
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,15 +31,10 @@ class SecondFragment : Fragment() {
 		disposables.add(GlobalStore.getSubject().map { it.value }.subscribe {
 			tv?.text = it.toString()
 		})
-		tv?.text = GlobalStore.state.value.toString()
+		tv?.text = GlobalStore.currentState.value.toString()
 		
-		view.findViewById<Button>(R.id.button_second).setOnClickListener {
-			findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
+		view.findViewById<Button>(R.id.button_first).setOnClickListener {
+			findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
 		}
-	}
-	
-	override fun onDestroy() {
-		super.onDestroy()
-		disposables.forEach { it?.dispose() }
 	}
 }

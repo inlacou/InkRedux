@@ -1,6 +1,5 @@
 package com.inlacou.inkredux
 
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
@@ -11,8 +10,11 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   
   //Rx style subscription
   private val subject = PublishSubject.create<State>()
-  override fun getObservable(): Observable<State> { return subject }
-  override fun getSubject(): PublishSubject<State> { return subject }
+  private val actionHistorySubject = PublishSubject.create<List<Pair<Long, Action>>>()
+  private val exhaustiveActionHistorySubject = PublishSubject.create<List<Triple<Long, Action, Boolean>>>()
+  override fun getSubject(): PublishSubject<State> = subject
+  override fun getActionHistorySubject(): PublishSubject<List<Pair<Long, Action>>> = actionHistorySubject
+  override fun getExhaustiveActionHistorySubject(): PublishSubject<List<Triple<Long, Action, Boolean>>> = exhaustiveActionHistorySubject
   
   //Callback style subscription
   private val subscribers = mutableSetOf<ReduxStoreSubscriber<State>>()
@@ -21,7 +23,7 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   
   override val currentState: State
     get() = state
-  var state: State = initialState
+  private var state: State = initialState
     private set(value) {
       field = value
       subscribers.forEach { it(value) }
@@ -40,8 +42,10 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
       if(changed) {
         state = newState
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
+        actionHistorySubject.onNext(actionHistory)
       }
       exhaustiveActionHistory.add(Triple(System.currentTimeMillis(), newAction, changed))
+      exhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
     }
   }
   

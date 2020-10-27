@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 		setSupportActionBar(findViewById(R.id.toolbar))
 		
 		findViewById<FloatingActionButton>(R.id.fab_plus).setOnClickListener { view ->
-			GlobalStore.applyAction(GlobalStore.Actions.Increment)
+			GlobalStore.applyAction(GlobalStore.Actions.Add(1))
 		}
 		findViewById<FloatingActionButton>(R.id.fab_minus).setOnClickListener { view ->
 			GlobalStore.applyAction(GlobalStore.Actions.Decrement)

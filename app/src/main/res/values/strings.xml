@@ -7,6 +7,15 @@
 	<string name="next">Next</string>
 	<string name="previous">Previous</string>
 	
-	<string name="hello_first_fragment">Hello first fragment</string>
-	<string name="hello_second_fragment">Hello second fragment</string>
+	<string name="hello_first_fragment">Current state fragment</string>
+	<string name="hello_second_fragment">History fragment</string>
+	
+	<string name="datetime">%1$td %1$tb %1$tY%2$s%1$tk:%1$tM</string>
+	<string name="datetime_with_seconds">%1$td %1$tb %1$tY%2$s%1$tk:%1$tM:%1$tS</string>
+	<string name="datetime_month_as_number">%1$td/%1$tm/%1$tY%2$s%1$tk:%1$tM</string>
+	<string name="datetime_month_as_number_with_seconds">%1$td/%1$tm/%1$tY%2$s%1$tk:%1$tM:%1$tS</string>
+	<string name="datetime_day_of_week">%1$ta %1$td %1$tb %1$tY%2$s%1$tk:%1$tM</string>
+	<string name="datetime_day_of_week_with_seconds">%1$ta %1$td %1$tb %1$tY%2$s%1$tk:%1$tM:%1$tS</string>
+	<string name="datetime_day_of_week_month_as_number">%1$ta %1$td/%1$tm/%1$tY%2$s%1$tk:%1$tM</string>
+	<string name="datetime_day_of_week_month_as_number_with_seconds">%1$ta %1$td/%1$tm/%1$tY%2$s%1$tk:%1$tM:%1$tS</string>
 </resources>
