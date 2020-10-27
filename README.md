@@ -10,7 +10,7 @@ My own Redux implementation. On my prior attempts to make use of the Redux archi
 
 ### Example Usage
 
-Here we have an example with some actions and a conversion from some actions to others through middleware. It is the same example used in the companion example app found on this same repository.
+Here we have an example **Redux Store** with some actions and a conversion from some actions to others through middleware. It is the same example used in the companion example app found on this same repository.
 
 ```kt
 import android.annotation.SuppressLint
@@ -52,4 +52,26 @@ object GlobalStore: BaseReduxStore<GlobalStore.State, GlobalStore.Actions>(initi
 		//Here we listen to BD changes with Room, for example
 	}
 }
+```
+
+Read one store value:
+
+```kt
+tv?.text = GlobalStore.state.value.toString()
+```
+
+Listen to one store value change:
+
+```kt
+disposables.add(GlobalStore.getSubject().map { it.value }.subscribe {
+	tv?.text = it.toString()
+})
+```
+
+Launch action on store (modify store state):
+
+```kt
+GlobalStore.applyAction(GlobalStore.Actions.Increment)
+//or
+GlobalStore.applyAction(GlobalStore.Actions.Add(1))
 ```
