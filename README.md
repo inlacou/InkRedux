@@ -54,13 +54,13 @@ object GlobalStore: BaseReduxStore<GlobalStore.State, GlobalStore.Actions>(initi
 }
 ```
 
-Read one store value:
+**Read** one store value:
 
 ```kt
 tv?.text = GlobalStore.state.value.toString()
 ```
 
-Listen to one store value change:
+**Listen** to one store value change:
 
 ```kt
 disposables.add(GlobalStore.getSubject().map { it.value }.subscribe {
@@ -68,7 +68,7 @@ disposables.add(GlobalStore.getSubject().map { it.value }.subscribe {
 })
 ```
 
-Launch action on store (modify store state):
+Launch action on store (**modify** store state):
 
 ```kt
 GlobalStore.applyAction(GlobalStore.Actions.Increment)
