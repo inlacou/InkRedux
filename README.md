@@ -63,7 +63,7 @@ tv?.text = GlobalStore.state.value.toString()
 **Listen** to one store value change:
 
 ```kt
-disposables.add(GlobalStore.getSubject().map { it.value }.subscribe {
+disposables.add(GlobalStore.getSubject().map { it.value }.distinctUntilChanged().toUi().subscribe {
 	tv?.text = it.toString()
 })
 ```
