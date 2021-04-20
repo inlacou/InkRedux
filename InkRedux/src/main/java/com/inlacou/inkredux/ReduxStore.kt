@@ -1,6 +1,5 @@
 package com.inlacou.inkredux;
 
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 interface ReduxStore <State: ReduxState, Action: ReduxAction> {

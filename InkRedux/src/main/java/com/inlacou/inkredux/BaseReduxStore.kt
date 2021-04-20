@@ -35,6 +35,7 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   override fun getActionHistory(): List<Pair<Long, Action>> = actionHistory.toList()
   override fun getExhaustiveActionHistory(): List<Triple<Long, Action, Boolean>> = exhaustiveActionHistory.toList()
 
+  @Synchronized
   override fun applyAction(action: Action) {
     applyMiddleware(state, action) { newAction ->
       val newState = applyReducers(state, newAction)
@@ -48,7 +49,8 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
       exhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
     }
   }
-  
+
+  @Synchronized
   override fun applyReducers(state: State, action: Action): State {
     var newState = state
     for (reducer in reducers) {
@@ -56,7 +58,8 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
     }
     return newState
   }
-  
+
+  @Synchronized
   override fun applyMiddleware(state: State, action: Action, dispatchAction: DispatchAction<Action>) {
     next(0)(state, action, dispatchAction)
   }
