@@ -39,7 +39,7 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   override fun applyAction(action: Action) {
     applyMiddleware(state, action) { newAction ->
       val newState = applyReducers(state, newAction)
-      val changed = newState!=state
+      val changed = newState!==state
       if(changed) {
         state = newState
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
