@@ -11,11 +11,12 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
 ) : ReduxStore<State, Action> {
 
   private val rxPresent = try { Class.forName(PublishSubject::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
+  private val liveDataPresent = try { Class.forName(LiveData::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
 
   //LiveData style subscription
-  private val liveData = MutableLiveData<State>()
-  private val actionHistoryLiveData = MutableLiveData<List<Pair<Long, Action>>>()
-  private val exhaustiveActionHistoryLiveData = MutableLiveData<List<Triple<Long, Action, Boolean>>>()
+  private val liveData by lazy { MutableLiveData<State>() }
+  private val actionHistoryLiveData by lazy { MutableLiveData<List<Pair<Long, Action>>>() }
+  private val exhaustiveActionHistoryLiveData by lazy { MutableLiveData<List<Triple<Long, Action, Boolean>>>() }
   override fun getLiveData(): LiveData<State> = liveData
   override fun getActionHistoryLiveData(): LiveData<List<Pair<Long, Action>>> = actionHistoryLiveData
   override fun getExhaustiveActionHistoryLiveData(): LiveData<List<Triple<Long, Action, Boolean>>> = exhaustiveActionHistoryLiveData
@@ -36,7 +37,7 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
       field = value
       subscribers.forEach { it(value) }
       if(rxPresent) mSubject.onNext(value)
-      liveData.value = value
+      if(liveDataPresent) liveData.value = value
     }
   private val actionHistory = mutableListOf<Pair<Long, Action>>()
   private val exhaustiveActionHistory = mutableListOf<Triple<Long, Action, Boolean>>()
@@ -55,11 +56,11 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         state = newState
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
         if(rxPresent) mActionHistorySubject.onNext(actionHistory)
-        actionHistoryLiveData.value = actionHistory
+        if(liveDataPresent) actionHistoryLiveData.value = actionHistory
       }
       exhaustiveActionHistory.add(Triple(System.currentTimeMillis(), newAction, changed))
       if(rxPresent) mExhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
-      exhaustiveActionHistoryLiveData.value = exhaustiveActionHistory
+      if(liveDataPresent) exhaustiveActionHistoryLiveData.value = exhaustiveActionHistory
     }
   }
 
