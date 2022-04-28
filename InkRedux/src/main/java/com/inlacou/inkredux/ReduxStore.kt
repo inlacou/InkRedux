@@ -2,6 +2,7 @@ package com.inlacou.inkredux;
 
 import androidx.lifecycle.LiveData
 import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.flow.Flow
 
 interface ReduxStore<State: ReduxState, Action: ReduxAction> {
   fun applyAction(action: Action)
@@ -19,6 +20,10 @@ interface ReduxStore<State: ReduxState, Action: ReduxAction> {
   fun getLiveData(): LiveData<State>
   fun getActionHistoryLiveData(): LiveData<List<Pair<Long, Action>>>
   fun getExhaustiveActionHistoryLiveData(): LiveData<List<Triple<Long, Action, Boolean>>>
+
+  fun getFlow(): Flow<State>
+  fun getActionHistoryFlow(): Flow<List<Pair<Long, Action>>>
+  fun getExhaustiveActionHistoryFlow(): Flow<List<Triple<Long, Action, Boolean>>>
 
   fun addSubscriber(subscriber: ReduxStoreSubscriber<State>): Boolean
   fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>): Boolean

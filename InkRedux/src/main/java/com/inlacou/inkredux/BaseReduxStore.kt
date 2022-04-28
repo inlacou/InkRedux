@@ -3,6 +3,9 @@ package com.inlacou.inkredux
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 
 abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         initialState: State,
@@ -12,6 +15,15 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
 
   private val rxPresent = try { Class.forName(PublishSubject::class.java.name); println("rx present"); true } catch (cnfe: NoClassDefFoundError) { println("rx not present"); false }
   private val liveDataPresent = try { Class.forName(LiveData::class.java.name); println("liveData present"); true } catch (cnfe: NoClassDefFoundError) { println("liveData not present"); false }
+  private val flowPresent = try { Class.forName(Flow::class.java.name); println("flow present"); true } catch (cnfe: NoClassDefFoundError) { println("flow not present"); false }
+
+  //Coroutine style subscription
+  private val mFlow by lazy { MutableSharedFlow<State>() }
+  private val mActionHistoryFlow by lazy { MutableSharedFlow<List<Pair<Long, Action>>>() }
+  private val mExhaustiveActionHistoryFlow by lazy { MutableSharedFlow<List<Triple<Long, Action, Boolean>>>() }
+  override fun getFlow(): Flow<State> = mFlow
+  override fun getActionHistoryFlow(): Flow<List<Pair<Long, Action>>> = mActionHistoryFlow
+  override fun getExhaustiveActionHistoryFlow(): Flow<List<Triple<Long, Action, Boolean>>> = mExhaustiveActionHistoryFlow
 
   //LiveData style subscription
   private val liveData by lazy { MutableLiveData<State>() }
@@ -38,6 +50,7 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
       subscribers.forEach { it(value) }
       if(rxPresent) mSubject.onNext(value)
       if(liveDataPresent) liveData.value = value
+      if(flowPresent) mFlow.tryEmit(value)
     }
   private val actionHistory = mutableListOf<Pair<Long, Action>>()
   private val exhaustiveActionHistory = mutableListOf<Triple<Long, Action, Boolean>>()
@@ -57,10 +70,12 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
         if(rxPresent) mActionHistorySubject.onNext(actionHistory)
         if(liveDataPresent) actionHistoryLiveData.value = actionHistory
+        if(flowPresent) mActionHistoryFlow.tryEmit(actionHistory)
       }
       exhaustiveActionHistory.add(Triple(System.currentTimeMillis(), newAction, changed))
       if(rxPresent) mExhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
       if(liveDataPresent) exhaustiveActionHistoryLiveData.value = exhaustiveActionHistory
+      if(flowPresent) mExhaustiveActionHistoryFlow.tryEmit(exhaustiveActionHistory)
     }
   }
 

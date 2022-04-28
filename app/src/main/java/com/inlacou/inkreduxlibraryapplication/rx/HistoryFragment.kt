@@ -12,6 +12,8 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.inlacou.inkreduxlibraryapplication.GlobalStore
 import com.inlacou.inkreduxlibraryapplication.R
+import com.inlacou.inkreduxlibraryapplication.utils.toCalendar
+import com.inlacou.inkreduxlibraryapplication.utils.toDateTime
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.*
 
@@ -48,33 +50,6 @@ class HistoryFragment : Fragment() {
 		
 		view.findViewById<Button>(R.id.button_second).setOnClickListener {
 			findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
-		}
-	}
-
-	fun Long.toCalendar(): Calendar = Calendar.getInstance().setMilliseconds(this)
-	
-	fun Calendar.setMilliseconds(millis: Long): Calendar {
-		this.timeInMillis = millis
-		return this }
-	
-	fun Calendar?.toDateTime(context: Context, separator: String = ", ", dayOfWeek: Boolean = false, monthAsNumber: Boolean = true, showSeconds: Boolean = false): String {
-		if (this == null) {
-			return ""
-		}
-		return if(dayOfWeek) {
-			if(monthAsNumber){
-				if(showSeconds) String.format(context.resources.getString(R.string.datetime_day_of_week_month_as_number_with_seconds), this, separator)
-				else String.format(context.resources.getString(R.string.datetime_day_of_week_month_as_number), this, separator)
-			}else{
-				if(showSeconds) String.format(context.resources.getString(R.string.datetime_day_of_week_with_seconds), this, separator)
-				else String.format(context.resources.getString(R.string.datetime_day_of_week), this, separator)
-			}
-		}else if(monthAsNumber) {
-			if(showSeconds) String.format(context.resources.getString(R.string.datetime_month_as_number_with_seconds), this, separator)
-			else String.format(context.resources.getString(R.string.datetime_month_as_number), this, separator)
-		}else{
-			if(showSeconds) String.format(context.resources.getString(R.string.datetime_with_seconds), this, separator)
-			else String.format(context.resources.getString(R.string.datetime), this, separator)
 		}
 	}
 
