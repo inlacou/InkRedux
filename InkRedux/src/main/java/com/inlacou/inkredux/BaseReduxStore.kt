@@ -1,5 +1,7 @@
 package com.inlacou.inkredux
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
@@ -7,31 +9,41 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         private val reducers: List<ReduxStateReducer<State, Action>>,
         private val middleware: List<ReduxMiddleware<State, Action>>
 ) : ReduxStore<State, Action> {
-  
+
+  private val rxPresent = try { Class.forName(PublishSubject::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
+  private val liveDataPresent = try { Class.forName(LiveData::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
+
+  //LiveData style subscription
+  private val liveData by lazy { MutableLiveData<State>() }
+  private val actionHistoryLiveData by lazy { MutableLiveData<List<Pair<Long, Action>>>() }
+  private val exhaustiveActionHistoryLiveData by lazy { MutableLiveData<List<Triple<Long, Action, Boolean>>>() }
+  override fun getLiveData(): LiveData<State> = liveData
+  override fun getActionHistoryLiveData(): LiveData<List<Pair<Long, Action>>> = actionHistoryLiveData
+  override fun getExhaustiveActionHistoryLiveData(): LiveData<List<Triple<Long, Action, Boolean>>> = exhaustiveActionHistoryLiveData
+
   //Rx style subscription
-  private val subject = PublishSubject.create<State>()
-  private val actionHistorySubject = PublishSubject.create<List<Pair<Long, Action>>>()
-  private val exhaustiveActionHistorySubject = PublishSubject.create<List<Triple<Long, Action, Boolean>>>()
-  override fun getSubject(): PublishSubject<State> = subject
-  override fun getActionHistorySubject(): PublishSubject<List<Pair<Long, Action>>> = actionHistorySubject
-  override fun getExhaustiveActionHistorySubject(): PublishSubject<List<Triple<Long, Action, Boolean>>> = exhaustiveActionHistorySubject
+  private val mSubject by lazy { PublishSubject.create<State>() }
+  private val mActionHistorySubject by lazy { PublishSubject.create<List<Pair<Long, Action>>>() }
+  private val mExhaustiveActionHistorySubject by lazy { PublishSubject.create<List<Triple<Long, Action, Boolean>>>() }
+  override fun getSubject(): PublishSubject<State> = mSubject
+  override fun getActionHistorySubject(): PublishSubject<List<Pair<Long, Action>>> = mActionHistorySubject
+  override fun getExhaustiveActionHistorySubject(): PublishSubject<List<Triple<Long, Action, Boolean>>> = mExhaustiveActionHistorySubject
   
   //Callback style subscription
-  private val subscribers = mutableSetOf<ReduxStoreSubscriber<State>>()
-  override fun addSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.add(element = subscriber)
-  override fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.remove(element = subscriber)
-  
   override val currentState: State
     get() = state
   private var state: State = initialState
     private set(value) {
       field = value
       subscribers.forEach { it(value) }
-      subject.onNext(value)
+      if(rxPresent) mSubject.onNext(value)
+      if(liveDataPresent) liveData.value = value
     }
-  
   private val actionHistory = mutableListOf<Pair<Long, Action>>()
   private val exhaustiveActionHistory = mutableListOf<Triple<Long, Action, Boolean>>()
+  private val subscribers = mutableSetOf<ReduxStoreSubscriber<State>>()
+  override fun addSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.add(element = subscriber)
+  override fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.remove(element = subscriber)
   override fun getActionHistory(): List<Pair<Long, Action>> = actionHistory.toList()
   override fun getExhaustiveActionHistory(): List<Triple<Long, Action, Boolean>> = exhaustiveActionHistory.toList()
 
@@ -43,10 +55,12 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
       if(changed) {
         state = newState
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
-        actionHistorySubject.onNext(actionHistory)
+        if(rxPresent) mActionHistorySubject.onNext(actionHistory)
+        if(liveDataPresent) actionHistoryLiveData.value = actionHistory
       }
       exhaustiveActionHistory.add(Triple(System.currentTimeMillis(), newAction, changed))
-      exhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
+      if(rxPresent) mExhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
+      if(liveDataPresent) exhaustiveActionHistoryLiveData.value = exhaustiveActionHistory
     }
   }
 

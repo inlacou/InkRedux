@@ -1,4 +1,4 @@
-package com.inlacou.inkreduxlibraryapplication
+package com.inlacou.inkreduxlibraryapplication.livedata
 
 import android.content.Context
 import android.os.Bundle
@@ -9,7 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
-import io.reactivex.rxjava3.disposables.Disposable
+import com.inlacou.inkreduxlibraryapplication.GlobalStore
+import com.inlacou.inkreduxlibraryapplication.R
 import java.util.*
 
 /**
@@ -17,8 +18,8 @@ import java.util.*
  */
 class HistoryFragment : Fragment() {
 	
-	private val disposables = mutableListOf<Disposable?>()
 	private var tv: TextView? = null
+	private val viewModel = HistoryViewModel()
 	
 	override fun onCreateView(
 			inflater: LayoutInflater, container: ViewGroup?,
@@ -32,12 +33,13 @@ class HistoryFragment : Fragment() {
 		super.onViewCreated(view, savedInstanceState)
 		
 		tv = view.findViewById(R.id.textview_value)
-		
-		disposables.add(GlobalStore.getActionHistorySubject().subscribe({
+
+		viewModel.state.observe(requireActivity()) {
 			tv?.text = it
-					.map { "\n${it.first.toCalendar().toDateTime(requireActivity(), showSeconds = true)}: ${it.second.javaClass.simpleName}" }
-					.toString().replace("[", "").replace("]", "").replace(",", "")
-		},{}))
+				.map { "\n${it.first.toCalendar().toDateTime(requireActivity(), showSeconds = true)}: ${it.second.javaClass.simpleName}" }
+				.toString().replace("[", "").replace("]", "").replace(",", "")
+		}
+
 		tv?.text = GlobalStore.getActionHistory()
 				.map { "\n${it.first.toCalendar().toDateTime(requireActivity(), showSeconds = true)}: ${it.second.javaClass.simpleName}" }
 				.toString().replace("[", "").replace("]", "").replace(",", "")
@@ -46,12 +48,7 @@ class HistoryFragment : Fragment() {
 			findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
 		}
 	}
-	
-	override fun onDestroy() {
-		super.onDestroy()
-		disposables.forEach { it?.dispose() }
-	}
-	
+
 	fun Long.toCalendar(): Calendar = Calendar.getInstance().setMilliseconds(this)
 	
 	fun Calendar.setMilliseconds(millis: Long): Calendar {
