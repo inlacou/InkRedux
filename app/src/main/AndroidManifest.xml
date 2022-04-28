@@ -11,7 +11,7 @@
 		android:name="androidx.multidex.MultiDexApplication"
 		android:theme="@style/Theme.InkReduxLibraryApplication">
 		<activity
-			android:name=".MainActivity"
+			android:name=".livedata.MainActivityLiveData"
 			android:label="@string/app_name"
 			android:theme="@style/Theme.InkReduxLibraryApplication.NoActionBar"
 			android:exported="true">

@@ -1,4 +1,4 @@
-package com.inlacou.inkreduxlibraryapplication
+package com.inlacou.inkreduxlibraryapplication.livedata
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
+import com.inlacou.inkreduxlibraryapplication.R
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
