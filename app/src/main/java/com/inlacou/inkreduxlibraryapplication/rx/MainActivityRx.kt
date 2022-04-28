@@ -12,7 +12,7 @@ class MainActivityRx : AppCompatActivity() {
 	
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(R.layout.activity_main_livedata)
+		setContentView(R.layout.activity_main_rx)
 		setSupportActionBar(findViewById(R.id.toolbar))
 		
 		findViewById<FloatingActionButton>(R.id.fab_plus).setOnClickListener { view ->

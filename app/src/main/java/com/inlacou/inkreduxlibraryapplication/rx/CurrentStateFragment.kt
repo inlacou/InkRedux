@@ -29,7 +29,7 @@ class CurrentStateFragment : Fragment() {
 		
 		tv = view.findViewById(R.id.textview_value)
 
-		disposables.add(GlobalStore.getSubject().map { it.value }.subscribe({ tv?.text = it.toString() }, { Toast.makeText(requireActivity(), it.message, Toast.LENGTH_LONG).show() }))
+		disposables.add(GlobalStore.getSubject().startWithItem(GlobalStore.currentState).map { it.value }.subscribe({ tv?.text = it.toString() }, { Toast.makeText(requireActivity(), it.message, Toast.LENGTH_LONG).show() }))
 
 		view.findViewById<Button>(R.id.button_first).setOnClickListener {
 			findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)

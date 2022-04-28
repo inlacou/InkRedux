@@ -10,8 +10,8 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         private val middleware: List<ReduxMiddleware<State, Action>>
 ) : ReduxStore<State, Action> {
 
-  private val rxPresent = try { Class.forName(PublishSubject::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
-  private val liveDataPresent = try { Class.forName(LiveData::class.java.name); true } catch (cnfe: NoClassDefFoundError) { false }
+  private val rxPresent = try { Class.forName(PublishSubject::class.java.name); println("rx present"); true } catch (cnfe: NoClassDefFoundError) { println("rx not present"); false }
+  private val liveDataPresent = try { Class.forName(LiveData::class.java.name); println("liveData present"); true } catch (cnfe: NoClassDefFoundError) { println("liveData not present"); false }
 
   //LiveData style subscription
   private val liveData by lazy { MutableLiveData<State>() }
