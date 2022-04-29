@@ -1,12 +1,20 @@
 package com.inlacou.inkredux
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
+import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.N)
 abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         initialState: State,
         private val reducers: List<ReduxStateReducer<State, Action>>,
@@ -17,10 +25,29 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   private val liveDataPresent = try { Class.forName(LiveData::class.java.name); println("liveData present"); true } catch (cnfe: NoClassDefFoundError) { println("liveData not present"); false }
   private val flowPresent = try { Class.forName(Flow::class.java.name); println("flow present"); true } catch (cnfe: NoClassDefFoundError) { println("flow not present"); false }
 
+  //Callback style subscription
+  override val currentState: State
+    get() = state
+  private var state: State = initialState
+    private set(value) {
+      field = value
+      subscribers.forEach { it(value) }
+      if(rxPresent) mSubject.onNext(value)
+      if(liveDataPresent) liveData.value = value
+      if(flowPresent) mFlow.tryEmit(value).also { Log.d("DEBUG", "EMIT flow state $it") }
+    }
+  private val actionHistory = mutableListOf<Pair<Long, Action>>()
+  private val exhaustiveActionHistory = mutableListOf<Triple<Long, Action, Boolean>>()
+  private val subscribers = mutableSetOf<ReduxStoreSubscriber<State>>()
+  override fun addSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.add(element = subscriber)
+  override fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.remove(element = subscriber)
+  override fun getActionHistory(): List<Pair<Long, Action>> = actionHistory.toList()
+  override fun getExhaustiveActionHistory(): List<Triple<Long, Action, Boolean>> = exhaustiveActionHistory.toList()
+
   //Coroutine style subscription
-  private val mFlow by lazy { MutableSharedFlow<State>() }
-  private val mActionHistoryFlow by lazy { MutableSharedFlow<List<Pair<Long, Action>>>() }
-  private val mExhaustiveActionHistoryFlow by lazy { MutableSharedFlow<List<Triple<Long, Action, Boolean>>>() }
+  private val mFlow by lazy { MutableStateFlow(state) }
+  private val mActionHistoryFlow by lazy { MutableStateFlow<List<Pair<Long, Action>>>(actionHistory) }
+  private val mExhaustiveActionHistoryFlow by lazy { MutableStateFlow<List<Triple<Long, Action, Boolean>>>(exhaustiveActionHistory) }
   override fun getFlow(): Flow<State> = mFlow
   override fun getActionHistoryFlow(): Flow<List<Pair<Long, Action>>> = mActionHistoryFlow
   override fun getExhaustiveActionHistoryFlow(): Flow<List<Triple<Long, Action, Boolean>>> = mExhaustiveActionHistoryFlow
@@ -40,25 +67,6 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
   override fun getSubject(): PublishSubject<State> = mSubject
   override fun getActionHistorySubject(): PublishSubject<List<Pair<Long, Action>>> = mActionHistorySubject
   override fun getExhaustiveActionHistorySubject(): PublishSubject<List<Triple<Long, Action, Boolean>>> = mExhaustiveActionHistorySubject
-  
-  //Callback style subscription
-  override val currentState: State
-    get() = state
-  private var state: State = initialState
-    private set(value) {
-      field = value
-      subscribers.forEach { it(value) }
-      if(rxPresent) mSubject.onNext(value)
-      if(liveDataPresent) liveData.value = value
-      if(flowPresent) mFlow.tryEmit(value)
-    }
-  private val actionHistory = mutableListOf<Pair<Long, Action>>()
-  private val exhaustiveActionHistory = mutableListOf<Triple<Long, Action, Boolean>>()
-  private val subscribers = mutableSetOf<ReduxStoreSubscriber<State>>()
-  override fun addSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.add(element = subscriber)
-  override fun removeSubscriber(subscriber: ReduxStoreSubscriber<State>) = subscribers.remove(element = subscriber)
-  override fun getActionHistory(): List<Pair<Long, Action>> = actionHistory.toList()
-  override fun getExhaustiveActionHistory(): List<Triple<Long, Action, Boolean>> = exhaustiveActionHistory.toList()
 
   @Synchronized
   override fun applyAction(action: Action) {
@@ -70,12 +78,14 @@ abstract class BaseReduxStore<State: ReduxState, Action: ReduxAction>(
         actionHistory.add(Pair(System.currentTimeMillis(), newAction))
         if(rxPresent) mActionHistorySubject.onNext(actionHistory)
         if(liveDataPresent) actionHistoryLiveData.value = actionHistory
-        if(flowPresent) mActionHistoryFlow.tryEmit(actionHistory)
+        if(flowPresent) mActionHistoryFlow.tryEmit(actionHistory).also { Log.d("DEBUG", "EMIT flow actionHistory $it") }
       }
       exhaustiveActionHistory.add(Triple(System.currentTimeMillis(), newAction, changed))
       if(rxPresent) mExhaustiveActionHistorySubject.onNext(exhaustiveActionHistory)
       if(liveDataPresent) exhaustiveActionHistoryLiveData.value = exhaustiveActionHistory
-      if(flowPresent) mExhaustiveActionHistoryFlow.tryEmit(exhaustiveActionHistory)
+      if(flowPresent) mExhaustiveActionHistoryFlow.tryEmit(mutableListOf<Triple<Long, Action, Boolean>>().apply {
+        addAll(exhaustiveActionHistory)
+      }).also { Log.d("DEBUG", "EMIT flow exhaustiveActionHistory $it") }
     }
   }
 
